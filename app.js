@@ -991,13 +991,14 @@ async function viewMembers() {
       <td><select aria-label="権限"${m.id === ME.id ? ' disabled' : ''}>${[['admin', '管理者'], ['editor', '投稿者'], ['disabled', '停止']].map(([v, l]) => `<option value="${v}"${v === m.role ? ' selected' : ''}>${l}</option>`).join('')}</select></td>
       <td class="small muted">${fmtDate(m.created_at)}</td><td style="text-align:right"><button class="btn line sm" data-act="save">保存</button></td></tr>`).join('')}
     </tbody></table></div>
-    <h2>メンバーを招待するには</h2>
+    <h2>メンバーを追加するには</h2>
     <div class="card small" style="line-height:1.9">
       <ol style="margin:0;padding-left:20px">
         <li>Supabase の管理画面で、このプロジェクトの <b>Authentication → Users</b> を開きます。</li>
-        <li>右上の <b>Add user → Send invitation</b> を押し、招待する人のメールアドレスを入れて送ります。</li>
-        <li>届いたメールのリンクを開くと、この編集サイトでパスワードと表示名を決める画面が出ます。</li>
+        <li>右上の <b>Add user → Create new user</b> を押し、メールアドレスと仮のパスワードを入れます。<b>Auto Confirm User</b> にチェックを入れて作成します。</li>
+        <li>メールアドレスと仮のパスワードを本人に伝えます。本人はログイン後、「アカウント」から自分のパスワードと表示名に変えてもらいます。</li>
         <li>最初は「投稿者」として登録されます。管理者にする場合は、この画面で権限を変えてください。</li>
+        <li>パスワードを忘れた人は、同じ画面で対象のユーザーを開き、パスワードを設定し直せます。</li>
       </ol>
     </div>`);
   $app.querySelector('tbody').addEventListener('click', async (e) => {
