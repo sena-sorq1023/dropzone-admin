@@ -132,3 +132,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
   .nav a{padding:10px 10px 12px;white-space:nowrap}
   h1{font-size:28px}
 }
+
+/* 取り込み */
+.imp{margin-bottom:14px}
+.imp summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-height:28px}
+.imp summary::-webkit-details-marker{display:none}
+.imp summary::before{content:'▸';margin-right:6px;color:var(--acc)}
+.imp[open] summary::before{content:'▾'}
+.imp-steps{margin:12px 0 6px;padding-left:20px;line-height:1.9}

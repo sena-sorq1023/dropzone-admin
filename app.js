@@ -1,4 +1,5 @@
 // DROPZONE 編集サイト（外部ライブラリなし）
+import * as Imp from './importer.js';
 const C = window.DZ_CONFIG;
 const $app = document.getElementById('app');
 
@@ -209,6 +210,7 @@ const ENT = {
       { k: 'logo_url', l: 'ロゴ', t: 'image', folder: 'tournaments' },
       { k: 'description', l: '概要', t: 'textarea', wide: true },
       { k: 'streams', l: '配信アーカイブ', t: 'pairs', wide: true, a: 'label', b: 'url', al: '表示名（例：DAY 1）', bl: 'URL' },
+      { k: 'liquipedia_url', l: 'LiquipediaのページURL', t: 'url', wide: true, hint: 'データを取り込んだ場合は必ず入れる（サイトに出典として表示されます）' },
     ],
   },
   tournament_stages: {
@@ -788,6 +790,19 @@ async function viewStage(stageId) {
     ${!isAdmin() ? '<p class="notice">保存すると、表全体が1件の承認リクエストとして送られます。</p>' : ''}
 
     <h2>順位表</h2>
+    <details class="card imp" id="imp">
+      <summary><b>Liquipediaなどから取り込む</b><span class="small muted">　コピーして貼るだけで下の表に入ります</span></summary>
+      <ol class="small imp-steps">
+        <li>LiquipediaのURLを入れて「ソースを開く」→ 開いたページを全部選択（Ctrl+A / ⌘A）してコピー。</li>
+        <li>下の枠に貼り付けて「読み込む」。どの試合を合計するか選びます。</li>
+        <li>「下の表に入れる」→ 内容を確認して、いつも通り保存（承認リクエスト）。</li>
+      </ol>
+      <p class="small muted">公式サイトや表計算ソフトの表をそのままコピーして貼ることもできます。試合結果が別ページにある大会は、そのページで同じ操作をしてください。</p>
+      <div class="row"><input type="url" id="lpurl" placeholder="https://liquipedia.net/pubgmobile/..." value="${esc(tour.liquipedia_url || '')}" style="flex:1;min-width:240px" aria-label="LiquipediaのURL"><button type="button" class="btn line sm" id="lpopen">ソースを開く</button></div>
+      <textarea id="imptext" class="md" style="min-height:180px;margin-top:10px" placeholder="ここに貼り付け" aria-label="取り込む内容"></textarea>
+      <div class="row" style="margin-top:10px"><button type="button" class="btn" id="impread">読み込む</button><span class="small muted" id="impmsg"></span></div>
+      <div id="impres"></div>
+    </details>
     <form id="sf" class="card ge">
       <div class="tbl-wrap" style="border:0"><table><thead><tr><th>#</th><th>チーム</th><th>未登録の場合</th><th class="num">WWCD</th><th class="num">順位pt</th><th class="num">キルpt</th><th class="num">合計</th><th>メモ</th><th></th></tr></thead>
       <tbody>${(standings.length ? standings : []).map(sRow).join('')}</tbody></table></div>
@@ -821,6 +836,86 @@ async function viewStage(stageId) {
     }
   });
   gridClick(sf, sRow); gridClick(pf, pRow);
+
+  /* --- 取り込み --- */
+  const imp = { kind: null, blocks: [], table: null, cols: [], pp: [] };
+  const impres = document.getElementById('impres'), impmsg = document.getElementById('impmsg');
+  document.getElementById('lpopen').onclick = () => {
+    const u = Imp.liquipediaRawUrl(document.getElementById('lpurl').value);
+    if (!u) { toast('LiquipediaのページURLを入れてください', true); return; }
+    window.open(u, '_blank', 'noopener');
+  };
+  const impRows = () => {
+    if (imp.kind === 'wiki') return Imp.aggregateBlocks(imp.blocks.filter((_, i) => impres.querySelector(`[data-blk="${i}"]`)?.checked));
+    if (imp.kind === 'prize') return imp.pp;
+    if (imp.kind === 'table') return Imp.tableToRows(imp.table, [...impres.querySelectorAll('[data-col]')].map((x) => x.value));
+    return [];
+  };
+  const fmtN = (n) => (Number.isInteger(n) ? n : n.toFixed(2));
+  const drawPreview = () => {
+    const rows = Imp.matchTeams(impRows(), teams);
+    const miss = rows.filter((r) => !r.team_id).length;
+    const pv = impres.querySelector('#imppv');
+    pv.innerHTML = rows.length ? `
+      <p class="small">${rows.length}チーム／登録済みチームに紐付け：<b>${rows.length - miss}</b>${miss ? `　<span style="color:var(--warn)">未登録：${miss}（名前のまま入ります。あとで「チーム」で選び直せます）</span>` : ''}</p>
+      <div class="tbl-wrap"><table><thead><tr><th class="num">#</th><th>取り込んだ名前</th><th>紐付け先</th><th class="num">WWCD</th><th class="num">順位pt</th><th class="num">キルpt</th><th class="num">合計</th></tr></thead><tbody>
+      ${rows.map((r) => `<tr><td class="num">${esc(r.rank ?? '')}</td><td>${esc(r.team)}</td><td>${r.team_id ? esc(r.team_label) : '<span class="pill pending">未登録</span>'}</td><td class="num">${r.wwcd}</td><td class="num">${fmtN(r.place_pts)}</td><td class="num">${fmtN(r.kill_pts)}</td><td class="num"><b>${fmtN(r.total)}</b></td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="actions"><button type="button" class="btn acc" id="impapply">下の表に入れる</button><span class="small muted">今の表の行は削除扱いになり、この内容に置き換わります。</span></div>` : '<p class="small muted">対象の行がありません。</p>';
+    const ap = pv.querySelector('#impapply');
+    if (ap) ap.onclick = () => {
+      const tb = sf.querySelector('tbody');
+      tb.querySelectorAll('tr').forEach((tr) => { if (tr.dataset.id) tr.classList.add('del'); else tr.remove(); });
+      for (const r of rows) tb.insertAdjacentHTML('beforeend', sRow({ rank: r.rank, team_id: r.team_id, team_name: r.team_id ? '' : r.team, wwcd: r.wwcd, place_pts: Math.round(r.place_pts), kill_pts: Math.round(r.kill_pts), total: Math.round(r.total) }));
+      document.getElementById('imp').open = false;
+      sf.scrollIntoView({ behavior: 'smooth' });
+      toast('表に入れました。内容を確認して保存してください');
+    };
+  };
+  document.getElementById('impread').onclick = () => {
+    const raw = document.getElementById('imptext').value;
+    impres.innerHTML = ''; impmsg.textContent = ''; imp.kind = null;
+    if (!raw.trim()) { toast('貼り付けた内容がありません', true); return; }
+    const blocks = Imp.parseWikiMatches(raw);
+    if (blocks.length) {
+      imp.kind = 'wiki'; imp.blocks = blocks;
+      const heads = [...new Set(blocks.map((b) => b.section))];
+      impmsg.textContent = `Liquipediaの試合データを${blocks.length}件見つけました`;
+      impres.innerHTML = `
+        <h3 style="font-size:15px;margin:18px 0 6px">合計する試合を選ぶ</h3>
+        <p class="small muted">このステージに当たるものだけチェックしてください（見出しごとにまとめて切り替えられます）。</p>
+        <div class="row" style="margin-bottom:8px">${heads.map((h, i) => `<button type="button" class="btn line sm" data-head="${i}">${esc(h || '（見出しなし）')}だけ</button>`).join('')}<button type="button" class="btn line sm" data-head="all">すべて</button></div>
+        <div class="listed">${blocks.map((b, i) => `<label class="chk"><input type="checkbox" data-blk="${i}" checked> <span><b>${esc(b.heading || '（見出しなし）')}</b>　${b.maps.length}試合（${esc(b.maps.join('・'))}）· ${b.teams.length}チーム${b.pointsFromPage ? '' : ' <span class="small" style="color:var(--warn)">配点の記載なし→標準配点で計算</span>'}</span></label>`).join('')}</div>
+        <p class="small muted" style="margin-top:8px">配点：${esc(blocks[0].placePts.join('・'))}（1位から）／キル ${blocks[0].killPts}pt。ペナルティなどの調整は取り込んだあとに表で直してください。</p>
+        <div id="imppv"></div>`;
+      impres.onchange = drawPreview;
+      impres.querySelectorAll('[data-head]').forEach((b) => (b.onclick = () => {
+        impres.querySelectorAll('[data-blk]').forEach((c) => { c.checked = b.dataset.head === 'all' || blocks[c.dataset.blk].section === heads[b.dataset.head]; });
+        drawPreview();
+      }));
+      drawPreview(); return;
+    }
+    const pp = Imp.parsePrizePool(raw);
+    if (pp.length) {
+      imp.kind = 'prize'; imp.pp = pp;
+      impmsg.textContent = '試合結果は見つからなかったので、賞金表から最終順位だけ読み込みました';
+      impres.innerHTML = '<div id="imppv"></div>'; drawPreview(); return;
+    }
+    const t = Imp.parsePastedTable(raw);
+    if (t && t.cols.includes('team')) {
+      imp.kind = 'table'; imp.table = t;
+      impmsg.textContent = `表として読み込みました（${t.rows.length}行）`;
+      const n = t.rows[0].length;
+      impres.innerHTML = `
+        <h3 style="font-size:15px;margin:18px 0 6px">列の対応を確認</h3>
+        <div class="tbl-wrap"><table><thead><tr>${Array.from({ length: n }, (_, i) => `<th><select data-col="${i}" aria-label="${i + 1}列目">${Imp.COLS.map(([k, l]) => `<option value="${k}"${t.cols[i] === k ? ' selected' : ''}>${l}</option>`).join('')}</select></th>`).join('')}</tr></thead>
+        <tbody>${t.header ? `<tr class="muted">${t.header.map((c) => `<td class="small">${esc(c)}</td>`).join('')}</tr>` : ''}${t.rows.slice(0, 3).map((r) => `<tr>${r.map((c) => `<td class="small">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        <div id="imppv"></div>`;
+      impres.onchange = drawPreview;
+      drawPreview(); return;
+    }
+    impmsg.textContent = '読み取れませんでした。Liquipediaの「ソース」か、表をコピーして貼ってください。';
+  };
   sf.addEventListener('input', (e) => {
     if (!document.getElementById('autosum').checked) return;
     const tr = e.target.closest('tr'); if (!tr || !['place_pts', 'kill_pts'].includes(e.target.dataset.k)) return;
