@@ -1,6 +1,6 @@
 :root{
   --bg:#F2F3F5; --card:#FFFFFF; --ink:#12131A; --sub:#5A5D6B; --line:#D9DBE1; --line2:#ECEDF1;
-  --acc:#FFE100; --ok:#1E7B4F; --ng:#B3261E; --warn:#8A5A00; --link:#2848C7;
+  --acc:#E5101C; --ok:#1E7B4F; --ng:#B3261E; --warn:#8A5A00; --link:#2848C7;
   --font:'Noto Sans JP',system-ui,sans-serif; --cond:'Barlow Condensed','Noto Sans JP',sans-serif;
 }
 *{box-sizing:border-box}
@@ -11,20 +11,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 .boot{padding:40px;text-align:center;color:var(--sub)}
 
 /* layout */
-.top{background:var(--ink);color:#fff;position:sticky;top:0;z-index:10}
+.top{background:var(--ink);border-bottom:3px solid var(--acc);color:#fff;position:sticky;top:0;z-index:10}
 .top-in{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:20px;min-height:56px;flex-wrap:wrap}
 .brand{font-family:var(--cond);font-weight:800;font-size:22px;letter-spacing:.06em;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px}
-.brand i{display:inline-block;width:10px;height:22px;background:var(--acc)}
+.brand img{display:block;height:30px;width:auto}
 .brand small{font-family:var(--font);font-size:12px;font-weight:500;color:#B9BBC6;letter-spacing:0}
 .nav{display:flex;flex-wrap:wrap;gap:2px;flex:1}
 .nav a{color:#D7D9E0;text-decoration:none;padding:16px 10px;font-size:14px;border-bottom:3px solid transparent}
 .nav a:hover{color:#fff}
 .nav a.on{color:#fff;border-bottom-color:var(--acc)}
-.nav .badge{background:var(--acc);color:var(--ink);font-weight:700;font-size:11px;border-radius:9px;padding:1px 6px;margin-left:4px}
+.nav .badge{background:var(--acc);color:#fff;font-weight:700;font-size:11px;border-radius:9px;padding:1px 6px;margin-left:4px}
 .me{display:flex;align-items:center;gap:10px;font-size:13px;color:#B9BBC6}
 .me a{color:#fff}
 .role{font-size:11px;font-weight:700;padding:1px 7px;border-radius:3px;background:#2E3040;color:#fff}
-.role.admin{background:var(--acc);color:var(--ink)}
+.role.admin{background:var(--acc);color:#fff}
 main{max-width:1200px;margin:0 auto;padding:28px 20px 80px}
 h1{font-family:var(--cond);font-weight:800;font-size:34px;letter-spacing:.02em;margin:0 0 4px}
 h2{font-size:18px;margin:32px 0 12px}
@@ -41,14 +41,14 @@ h2{font-size:18px;margin:32px 0 12px}
 .tile:hover{border-color:var(--ink)}
 .tile b{display:block;font-family:var(--cond);font-size:22px;letter-spacing:.03em}
 .tile span{font-size:13px;color:var(--sub)}
-.notice{border-left:4px solid var(--acc);background:#FFFBE0;padding:12px 16px;border-radius:4px;margin:0 0 16px;font-size:14px}
+.notice{border-left:4px solid var(--acc);background:#FFF2F2;padding:12px 16px;border-radius:4px;margin:0 0 16px;font-size:14px}
 .notice.ng{border-color:var(--ng);background:#FCEDEC}
 .notice.ok{border-color:var(--ok);background:#E7F4EC}
 
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 16px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:4px;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none;white-space:nowrap}
 .btn:hover{opacity:.88}
-.btn.acc{background:var(--acc);border-color:var(--acc);color:var(--ink)}
+.btn.acc{background:var(--acc);border-color:var(--acc);color:#fff}
 .btn.line{background:#fff;color:var(--ink)}
 .btn.ok{background:var(--ok);border-color:var(--ok)}
 .btn.ng{background:#fff;color:var(--ng);border-color:var(--ng)}
@@ -116,7 +116,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 /* auth */
 .auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth .card{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px;padding:32px}
-.auth .brand{color:var(--ink);font-size:28px}
+.auth .brand{background:var(--ink);padding:14px 16px;border-radius:4px}.auth .brand img{height:38px}
 
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:6px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:50}
 #toast.show{opacity:1}

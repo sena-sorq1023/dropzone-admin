@@ -472,13 +472,13 @@ function shell(route, content) {
     ...(isAdmin() ? [['#/members', 'メンバー', route === 'members']] : []),
   ];
   return `<header class="top"><div class="top-in">
-    <a class="brand" href="#/"><i></i>DROPZONE <small>編集サイト</small></a>
+    <a class="brand" href="#/"><img src="logo.webp" alt="DROPZONE"><small>編集サイト</small></a>
     <nav class="nav" aria-label="メニュー">${nav.map(([h, l, on, n]) => `<a href="${h}"${on ? ' class="on" aria-current="page"' : ''}>${l}${n ? `<span class="badge">${n}</span>` : ''}</a>`).join('')}</nav>
     <div class="me"><span class="role ${ME.role}">${ME.role === 'admin' ? '管理者' : '投稿者'}</span><a href="#/account">${esc(ME.display_name)}</a></div>
   </div></header><main>${content}</main>`;
 }
 
-function authShell(inner) { return `<div class="auth"><div class="card"><div class="brand"><i></i>DROPZONE</div>${inner}</div></div>`; }
+function authShell(inner) { return `<div class="auth"><div class="card"><div class="brand"><img src="logo.webp" alt="DROPZONE 編集サイト"></div>${inner}</div></div>`; }
 
 /* =====================================================================
    ルーター
