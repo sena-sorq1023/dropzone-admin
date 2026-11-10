@@ -2,6 +2,6 @@
 window.DZ_CONFIG = {
   supabaseUrl: 'https://dvwwldoorumzdibygdnh.supabase.co',
   supabaseKey: 'sb_publishable_OqQSYL9fMfnSoq2sS1Q0zQ_nh_DXHyY',
-  siteUrl: 'https://dropzone-test.senastudio.jp',
+  siteUrl: 'https://dropzone.senastudio.jp',
   adminUrl: 'https://dropzone-admin.senastudio.jp',
 };
