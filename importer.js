@@ -176,9 +176,58 @@ export const COLS = [['', '（使わない）'], ['rank', '順位'], ['team', '�
 const isNum = (s) => /^-?\d+(\.\d+)?$/.test(String(s).replace(/[,\s]/g, '').replace(/(st|nd|rd|th|位)$/i, ''));
 export const toNum = (s) => Number(String(s ?? '').replace(/[,\s]/g, '').replace(/(st|nd|rd|th|位)$/i, '')) || 0;
 
+// Webページの表をコピーすると、1セル1行の縦並びになることがある（Liquipediaなど）。それを表に組み直す。
+const NAME_RE = /participant|team|チーム|参加|name/i;
+function parseVertical(raw) {
+  const lines = raw.replace(/\r/g, '').split('\n').map((l) => l.replace(/ /g, ' '));
+  const nonEmpty = lines.filter((l) => l.trim());
+  const wide = nonEmpty.filter((l) => l.split('\t').filter((c) => c.trim()).length >= 3).length;
+  if (wide > nonEmpty.length * 0.3) return null;
+  let start = 0, header = null;
+  const hi = lines.findIndex((l) => NAME_RE.test(l) && l.includes('\t'));
+  if (hi >= 0) { header = lines[hi].split('\t').map((c) => c.trim()).filter(Boolean); start = hi + 1; }
+  const toks = lines.slice(start).flatMap((l) => l.split('\t')).map((c) => c.trim()).filter(Boolean);
+  while (toks.length && !isNum(toks[0])) toks.shift();
+  const isText = (t) => !isNum(t);
+  let k = null;
+  if (header) { const ti = header.findIndex((h) => NAME_RE.test(h)); if (ti >= 0) k = header.length - ti - 1; }
+  if (k == null) {
+    let a = 1; while (a < toks.length && isNum(toks[a])) a++;
+    let b = a; while (b < toks.length && isText(toks[b])) b++;
+    let c = b; while (c < toks.length && isNum(toks[c])) c++;
+    if (c >= toks.length) return null;
+    k = c - b - 1;
+  }
+  if (!(k >= 0)) return null;
+  const rows = [];
+  let i = 0;
+  while (i < toks.length) {
+    if (!isNum(toks[i])) { i++; continue; }
+    const rank = toks[i++];
+    const name = [];
+    while (i < toks.length && isText(toks[i])) name.push(toks[i++]);
+    if (!name.length) continue;
+    const nums = [];
+    while (i < toks.length && nums.length < k && isNum(toks[i])) nums.push(toks[i++]);
+    rows.push([rank, name.join(' '), ...nums]);
+  }
+  if (rows.length < 2) return null;
+  let hdr = null;
+  if (header) {
+    const ti = header.findIndex((h) => NAME_RE.test(h));
+    hdr = ['#', header[ti], ...header.slice(ti + 1)];
+  }
+  return { header: hdr, rows };
+}
+
 export function parsePastedTable(raw) {
-  let lines = raw.replace(/\r/g, '').split('\n').map((l) => l.replace(/ /g, ' ')).filter((l) => l.trim());
-  let cells = lines.map((l) => (l.includes('\t') ? l.split('\t') : l.split(/\s{2,}|,/)).map((c) => c.trim()));
+  const vt = parseVertical(raw);
+  if (vt) return finishTable(vt.header ? [vt.header, ...vt.rows] : vt.rows);
+  const lines = raw.replace(/\r/g, '').split('\n').map((l) => l.replace(/ /g, ' ')).filter((l) => l.trim());
+  return finishTable(lines.map((l) => (l.includes('\t') ? l.split('\t') : l.split(/\s{2,}|,/)).map((c) => c.trim())));
+}
+
+function finishTable(cells) {
   // 空のセル（ロゴ画像など）だけの列を落とす
   const width = Math.max(...cells.map((r) => r.length));
   cells = cells.map((r) => Array.from({ length: width }, (_, i) => r[i] ?? ''));
@@ -198,7 +247,7 @@ export function parsePastedTable(raw) {
       else if (/total|合計|総合|^pts$|^points$|ポイント$/.test(s)) guess[i] = 'total';
       else if (/plac|順位pt|順位ポイント|rank ?pts|^pp$/.test(s)) guess[i] = 'place_pts';
       else if (/^#$|^rank$|^順位$|^pos|^no\.?$/.test(s)) guess[i] = 'rank';
-      else if (/team|チーム|name/.test(s)) guess[i] = 'team';
+      else if (/team|チーム|name|participant|参加/.test(s)) guess[i] = 'team';
     });
   }
   if (!guess.includes('team')) {
