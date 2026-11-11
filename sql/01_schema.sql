@@ -47,6 +47,21 @@ on conflict (id) do nothing;
 -- ---------------------------------------------------------------------
 -- 2. 公開データ
 -- ---------------------------------------------------------------------
+create table if not exists public.staff (
+  id           uuid primary key default gen_random_uuid(),
+  slug         text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]*$'),
+  name         text not null,                 -- 記事の「記者名」と同じ表記にすると記事とつながる
+  position     text not null default 'ライター', -- 肩書（編集長／エディター／ライター など）
+  focus        text,                          -- 担当（例：国内大会・移籍情報）
+  photo_url    text,
+  bio          text,
+  links        jsonb not null default '{}'::jsonb,
+  sort_order   int not null default 100,
+  active       boolean not null default true,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
 create table if not exists public.teams (
   id           uuid primary key default gen_random_uuid(),
   slug         text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]*$'),
@@ -206,7 +221,7 @@ begin new.updated_at = now(); return new; end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['teams','players','tournaments','tournament_stages','standings','player_stats','transfers','articles'] loop
+  foreach t in array array['teams','players','tournaments','tournament_stages','standings','player_stats','transfers','articles','staff'] loop
     execute format('drop trigger if exists touch_site on public.%I', t);
     execute format('create trigger touch_site after insert or update or delete on public.%I for each statement execute function public.touch_site()', t);
     execute format('drop trigger if exists set_updated_at on public.%I', t);
@@ -285,7 +300,7 @@ create or replace function public._apply(p_entity text, p_action text, p_entity_
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_id uuid; cols text; sets text; v_payload jsonb;
 begin
-  if p_entity not in ('articles','teams','players','tournaments','tournament_stages','standings','player_stats','transfers') then
+  if p_entity not in ('articles','teams','players','tournaments','tournament_stages','standings','player_stats','transfers','staff') then
     raise exception 'unknown entity %', p_entity;
   end if;
   v_payload := coalesce(p_payload, '{}'::jsonb) - 'created_at' - 'updated_at';
@@ -413,7 +428,7 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['teams','players','tournaments','tournament_stages','standings','player_stats','transfers','articles','site_state'] loop
+  foreach t in array array['teams','players','tournaments','tournament_stages','standings','player_stats','transfers','articles','staff','site_state'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists public_read on public.%I', t);
     execute format('create policy public_read on public.%I for select using (true)', t);
