@@ -69,3 +69,8 @@ begin
   raise exception 'unknown action %', p_action;
 end $$;
 revoke all on function public._apply(text,text,uuid,jsonb) from public, anon, authenticated;
+
+-- 承認リクエストの対象に「staff」を追加
+alter table public.change_requests drop constraint if exists change_requests_entity_check;
+alter table public.change_requests add constraint change_requests_entity_check
+  check (entity in ('articles','teams','players','tournaments','tournament_stages','standings','player_stats','transfers','staff','batch'));

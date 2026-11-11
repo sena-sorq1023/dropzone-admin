@@ -290,7 +290,7 @@ create table if not exists public.change_requests (
 create index if not exists cr_status_idx on public.change_requests(status, created_at desc);
 alter table public.change_requests drop constraint if exists change_requests_entity_check;
 alter table public.change_requests add constraint change_requests_entity_check
-  check (entity in ('articles','teams','players','tournaments','tournament_stages','standings','player_stats','transfers','batch'));
+  check (entity in ('articles','teams','players','tournaments','tournament_stages','standings','player_stats','transfers','staff','batch'));
 alter table public.change_requests drop constraint if exists change_requests_action_check;
 alter table public.change_requests add constraint change_requests_action_check
   check (action in ('create','update','delete','batch'));
