@@ -167,7 +167,7 @@ const cache = {
 /* =====================================================================
    データの種類と入力項目
    ===================================================================== */
-const LINK_KEYS = [['x', 'X'], ['youtube', 'YouTube'], ['twitch', 'Twitch'], ['tiktok', 'TikTok'], ['website', 'Webサイト']];
+const LINK_KEYS = [['x', 'X'], ['instagram', 'Instagram'], ['youtube', 'YouTube'], ['twitch', 'Twitch'], ['tiktok', 'TikTok'], ['website', 'Webサイト']];
 const ENT = {
   articles: {
     label: '記事', icon: 'NEWS', titleOf: (r) => r.title, order: 'published_at.desc',
