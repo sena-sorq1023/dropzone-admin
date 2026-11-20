@@ -236,6 +236,7 @@ const ENT = {
       { k: 'region', l: '地域', t: 'text', req: true, def: '日本' },
       { k: 'founded', l: '設立', t: 'text', hint: '例：2024' },
       { k: 'manager', l: 'マネージャー', t: 'text' },
+      { k: 'coach', l: 'コーチ', t: 'text', hint: '複数いる場合は「、」で区切って入力' },
       { k: 'logo_url', l: 'ロゴ', t: 'image', folder: 'teams' },
       { k: 'description', l: '紹介文・沿革', t: 'textarea', wide: true },
       { k: 'achievements', l: '主な実績', t: 'list', wide: true },
