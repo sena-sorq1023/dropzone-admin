@@ -3,5 +3,5 @@ window.DZ_CONFIG = {
   supabaseUrl: 'https://dvwwldoorumzdibygdnh.supabase.co',
   supabaseKey: 'sb_publishable_OqQSYL9fMfnSoq2sS1Q0zQ_nh_DXHyY',
   siteUrl: 'https://dropzone-news.jp',
-  adminUrl: 'https://dropzone-admin.senastudio.jp',
+  adminUrl: 'https://admin.dropzone-news.jp',
 };
