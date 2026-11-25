@@ -230,6 +230,7 @@ const ENT = {
     listCols: [['logo_url', '', (r) => (r.logo_url ? `<img class="thumb" src="${esc(r.logo_url)}" alt="">` : '<span class="thumb"></span>'), true], ['name', 'チーム名'], ['tag', 'タグ'], ['status', '状態', (r) => TEAMST[r.status]], ['region', '地域']],
     fields: [
       { k: 'name', l: 'チーム名', t: 'text', req: true },
+      { k: 'kana', l: 'よみがな', t: 'text', hint: '例：けーえぬ' },
       { k: 'tag', l: 'タグ', t: 'text', hint: '例：KN' },
       { k: 'slug', l: 'URL名（スラッグ）', t: 'slug', req: true, from: 'name', prefix: 'team' },
       { k: 'status', l: '状態', t: 'select', opts: [['active', '活動中'], ['inactive', '休止中'], ['disbanded', '解散']] },
@@ -248,6 +249,7 @@ const ENT = {
     listCols: [['ign', '選手名'], ['full_ign', '表記（タグ付き）'], ['team_id', '所属', (r) => esc(cache.name('teams', r.team_id)) || '<span class="muted">フリー</span>', true], ['role', 'ロール']],
     fields: [
       { k: 'ign', l: '選手名', t: 'text', req: true, hint: 'タグなし（例：TAMR4）' },
+      { k: 'kana', l: 'よみがな', t: 'text', hint: '例：たむら' },
       { k: 'full_ign', l: '表記（タグ付き）', t: 'text', hint: '例：KN・TAMR4' },
       { k: 'slug', l: 'URL名（スラッグ）', t: 'slug', req: true, from: 'ign', prefix: 'player' },
       { k: 'team_id', l: '現在の所属', t: 'ref', ref: 'teams', hint: '移籍情報を登録すると自動で更新されます' },
